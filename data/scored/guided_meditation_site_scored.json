@@ -1,0 +1,484 @@
+[
+  {
+    "title": "The Forest Speaks",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 75,
+    "d5_object_density": 85,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 0,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic",
+      "auditory",
+      "none/open"
+    ],
+    "word_count": 2626,
+    "confidence": "high"
+  },
+  {
+    "title": "Rainbow Meditation and Pot of Gold Visualization",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 75,
+    "d5_object_density": 90,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 0,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 25,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic",
+      "visual"
+    ],
+    "word_count": 1617,
+    "confidence": "high"
+  },
+  {
+    "title": "Peace, Tranquility and Healing",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 90,
+    "d6_temporal_dynamics": 10,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 0,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic",
+      "visual"
+    ],
+    "word_count": 634,
+    "confidence": "high"
+  },
+  {
+    "title": "Buddhist Guided Meditation",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 69,
+    "d5_object_density": 90,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 0,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 25,
+    "d10_relational_orientation": 38,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 1824,
+    "confidence": "high"
+  },
+  {
+    "title": "Body Awareness Meditation",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 88,
+    "d5_object_density": 90,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 0,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "breath_regulation",
+    "d4_object_nature": [
+      "somatic",
+      "visual"
+    ],
+    "word_count": 798,
+    "confidence": "high"
+  },
+  {
+    "title": "The Kingfisher",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 75,
+    "d5_object_density": 75,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 646,
+    "confidence": "high"
+  },
+  {
+    "title": "Ribbons of Healing Light",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 0,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 90,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 827,
+    "confidence": "high"
+  },
+  {
+    "title": "Letting Go of Work/Home Stresses",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 55,
+    "d5_object_density": 90,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 0,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 25,
+    "d3_startup_modality": "physical_movement",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 1543,
+    "confidence": "high"
+  },
+  {
+    "title": "Radiant Being",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 50,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 311,
+    "confidence": "high"
+  },
+  {
+    "title": "Angel Healing Meditation",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 75,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic",
+      "verbal"
+    ],
+    "word_count": 1084,
+    "confidence": "high"
+  },
+  {
+    "title": "Gently Down The Stream",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 75,
+    "d5_object_density": 75,
+    "d6_temporal_dynamics": 10,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "body_scan",
+    "d4_object_nature": [
+      "auditory"
+    ],
+    "word_count": 540,
+    "confidence": "high"
+  },
+  {
+    "title": "Bluebell Wood Meditation",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 65,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 25,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "auditory"
+    ],
+    "word_count": 929,
+    "confidence": "high"
+  },
+  {
+    "title": "Forest Waterfall",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 75,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic",
+      "auditory"
+    ],
+    "word_count": 997,
+    "confidence": "high"
+  },
+  {
+    "title": "Trust Walk - Path to Freedom and Self Love",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 50,
+    "d6_temporal_dynamics": 50,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "visual"
+    ],
+    "word_count": 972,
+    "confidence": "high"
+  },
+  {
+    "title": "It's Like This - Mindfulness Meditation",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 28,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 85,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 0,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 991,
+    "confidence": "high"
+  },
+  {
+    "title": "Healing Guided Meditation",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 25,
+    "d5_object_density": 50,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 50,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 427,
+    "confidence": "high"
+  },
+  {
+    "title": "The Hammock",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 100,
+    "d5_object_density": 65,
+    "d6_temporal_dynamics": 10,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic",
+      "auditory"
+    ],
+    "word_count": 437,
+    "confidence": "high"
+  },
+  {
+    "title": "Heart Breath",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 90,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 0,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 376,
+    "confidence": "high"
+  },
+  {
+    "title": "Guided Loving-Kindness - Buddhist Meditation",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 69,
+    "d5_object_density": 90,
+    "d6_temporal_dynamics": 50,
+    "d7_affective_cultivation": 73,
+    "d8_interoceptive_demand": 0,
+    "d9_metacognitive_load": 25,
+    "d10_relational_orientation": 44,
+    "d3_startup_modality": "breath_regulation",
+    "d4_object_nature": [
+      "affective",
+      "somatic",
+      "verbal"
+    ],
+    "word_count": 1483,
+    "confidence": "high"
+  },
+  {
+    "title": "Acknowledge All Awareness",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 75,
+    "d5_object_density": 90,
+    "d6_temporal_dynamics": 10,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 25,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 392,
+    "confidence": "high"
+  },
+  {
+    "title": "Coastal Path Meditation",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 50,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 25,
+    "d10_relational_orientation": 25,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "visual"
+    ],
+    "word_count": 457,
+    "confidence": "high"
+  },
+  {
+    "title": "Stillness and Centered Meditation",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 75,
+    "d5_object_density": 50,
+    "d6_temporal_dynamics": 50,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 25,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 599,
+    "confidence": "high"
+  },
+  {
+    "title": "The Ocean",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 65,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 542,
+    "confidence": "high"
+  },
+  {
+    "title": "Flowing Stream Meditation",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 90,
+    "d6_temporal_dynamics": 50,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "visual",
+      "auditory"
+    ],
+    "word_count": 565,
+    "confidence": "high"
+  },
+  {
+    "title": "Under Waterfall",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 75,
+    "d6_temporal_dynamics": 75,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 309,
+    "confidence": "high"
+  },
+  {
+    "title": "Bliss For Your Brain",
+    "source": "the-guided-meditation-site.com",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 85,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 0,
+    "d8_interoceptive_demand": 0,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 25,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic",
+      "visual",
+      "auditory",
+      "cognitive"
+    ],
+    "word_count": 1741,
+    "confidence": "high"
+  }
+]

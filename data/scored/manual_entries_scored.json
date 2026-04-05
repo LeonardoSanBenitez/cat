@@ -1,0 +1,219 @@
+[
+  {
+    "title": "Classic Anapanasati (Breath Meditation)",
+    "source": "manual/traditional",
+    "d1_attentional_constraint": 70,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 85,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 0,
+    "d8_interoceptive_demand": 50,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 290,
+    "confidence": "high"
+  },
+  {
+    "title": "Goenka-style Vipassana Body Scan",
+    "source": "manual/traditional",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 92,
+    "d5_object_density": 90,
+    "d6_temporal_dynamics": 75,
+    "d7_affective_cultivation": 0,
+    "d8_interoceptive_demand": 84,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 311,
+    "confidence": "high"
+  },
+  {
+    "title": "Transcendental Meditation Style Mantra Practice",
+    "source": "manual/traditional",
+    "d1_attentional_constraint": 0,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 50,
+    "d6_temporal_dynamics": 10,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 25,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "verbal"
+    ],
+    "word_count": 202,
+    "confidence": "high"
+  },
+  {
+    "title": "Zen Shikantaza (Just Sitting)",
+    "source": "manual/traditional",
+    "d1_attentional_constraint": 0,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 85,
+    "d6_temporal_dynamics": 10,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 25,
+    "d3_startup_modality": "physical_movement",
+    "d4_object_nature": [
+      "none/open"
+    ],
+    "word_count": 210,
+    "confidence": "high"
+  },
+  {
+    "title": "Metta (Loving-Kindness) Full Practice",
+    "source": "manual/traditional",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 50,
+    "d6_temporal_dynamics": 50,
+    "d7_affective_cultivation": 70,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 36,
+    "d3_startup_modality": "breath_regulation",
+    "d4_object_nature": [
+      "affective"
+    ],
+    "word_count": 302,
+    "confidence": "high"
+  },
+  {
+    "title": "Tonglen (Giving and Taking)",
+    "source": "manual/traditional",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 35,
+    "d6_temporal_dynamics": 25,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 51,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 213,
+    "confidence": "high"
+  },
+  {
+    "title": "MBSR Body Scan (Jon Kabat-Zinn style)",
+    "source": "manual/traditional",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 92,
+    "d5_object_density": 90,
+    "d6_temporal_dynamics": 75,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 300,
+    "confidence": "high"
+  },
+  {
+    "title": "Yoga Nidra (Simplified)",
+    "source": "manual/traditional",
+    "d1_attentional_constraint": 59,
+    "d2_somatic_engagement": 75,
+    "d5_object_density": 75,
+    "d6_temporal_dynamics": 50,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 307,
+    "confidence": "high"
+  },
+  {
+    "title": "Dzogchen Pointing-Out Instructions (simplified)",
+    "source": "manual/traditional",
+    "d1_attentional_constraint": 0,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 35,
+    "d6_temporal_dynamics": 10,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 243,
+    "confidence": "high"
+  },
+  {
+    "title": "Progressive Muscle Relaxation",
+    "source": "manual/traditional",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 75,
+    "d5_object_density": 90,
+    "d6_temporal_dynamics": 90,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "relaxation_induction",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 267,
+    "confidence": "high"
+  },
+  {
+    "title": "Open Monitoring Vipassana (Mahasi style)",
+    "source": "manual/traditional",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 65,
+    "d6_temporal_dynamics": 10,
+    "d7_affective_cultivation": 0,
+    "d8_interoceptive_demand": 25,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "none",
+    "d4_object_nature": [
+      "somatic"
+    ],
+    "word_count": 217,
+    "confidence": "high"
+  },
+  {
+    "title": "Chakra Meditation with Visualization",
+    "source": "manual/traditional",
+    "d1_attentional_constraint": 50,
+    "d2_somatic_engagement": 50,
+    "d5_object_density": 85,
+    "d6_temporal_dynamics": 50,
+    "d7_affective_cultivation": 10,
+    "d8_interoceptive_demand": 0,
+    "d9_metacognitive_load": 15,
+    "d10_relational_orientation": 0,
+    "d3_startup_modality": "breath_regulation",
+    "d4_object_nature": [
+      "visual",
+      "somatic"
+    ],
+    "word_count": 282,
+    "confidence": "high"
+  }
+]
