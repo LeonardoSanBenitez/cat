@@ -1,0 +1,148 @@
+You are scoring a guided meditation transcript using the Contemplative Activity Taxonomy (CAT), a 10-dimensional framework for characterizing meditation practices based on their instruction text.
+
+You will receive:
+1. The full transcript of a guided meditation
+2. Pass 1 keyword detection results (indicator counts and detected phrases)
+3. Metadata (title, channel, duration)
+
+Your task: score each of the 10 dimensions based on the TRANSCRIPT CONTENT (not the title or metadata). Use the Pass 1 indicators as supporting evidence but override them when the holistic reading of the transcript contradicts the keyword counts.
+
+---
+
+## Dimension Definitions and Anchors
+
+### D1. Attentional Constraint (AC) [0-100]
+How much does the instruction narrow the attentional aperture?
+- 0: Total freedom. "Let the mind rest wherever it goes."
+- 25: Soft field. "Notice whatever arises."
+- 50: Guided field. "Move your attention through the body."
+- 75: Firm anchor. "Return to the breath whenever the mind wanders."
+- 100: Locked focus. "Hold attention on the flame without wavering."
+
+### D2. Somatic Engagement (SE) [0-100]
+How much does the practice recruit bodily awareness?
+- 0: Purely cognitive. "Contemplate the meaning of impermanence."
+- 50: Body as co-equal. "Observe breath and thoughts accompanying it."
+- 100: Fully somatic. "Feel the weight of your body. Nothing else."
+
+### D3. Startup Modality (categorical)
+What initiates the meditative state in the first minutes?
+- none: begins directly with main practice
+- breath_regulation: pranayama, counted breaths
+- body_scan: systematic attention to body regions
+- physical_movement: walking, stretching, mudra
+- relaxation_induction: progressive muscle relaxation, autogenic phrases
+
+### D4. Object Nature (categorical, list)
+Primary object(s) of attention as specified by the instruction.
+Choose all that apply: somatic, verbal, visual, auditory, cognitive, affective, none_open
+
+### D5. Object Density (OD) [0-100]
+How many distinct objects of attention does the practice employ?
+- 0: No object (open awareness)
+- 20: Single object held throughout
+- 50: Small set cycled through (e.g., metta: self, friend, neutral, difficult, all)
+- 75: Many objects in sequence (body scan through 30+ regions)
+- 100: Everything simultaneously ("notice everything")
+
+### D6. Temporal Dynamics (TD) [0-100]
+How much does the attentional task change over the course of the practice?
+- 0: Completely static. Same instruction throughout.
+- 50: Phased. Two or three distinct stages.
+- 100: Rapid, unpredictable shifts.
+
+### D7. Affective Cultivation (AffC) [0-100]
+How much does the practice actively generate or cultivate emotional states?
+- 0: Affect-neutral. "Simply observe."
+- 50: Active cultivation alongside observation.
+- 100: Intense affective generation. "Let devotion fill every cell."
+
+### D8. Interoceptive Demand (ID) [0-100]
+How much does the practice require sensitivity to internal bodily signals?
+- 0: No interoceptive demand (mantra without body reference).
+- 50: Moderate. "Notice rise and fall of the abdomen."
+- 100: Maximal precision. "Detect the boundary between sensation and no-sensation."
+
+### D9. Metacognitive Load (ML) [0-100]
+How much does the practice ask the meditator to monitor their own mental process?
+- 0: No self-monitoring. "Just repeat the mantra."
+- 25: Light. "When you notice wandering, return."
+- 50: Active. "Notice whether attention is stable or unstable."
+- 75: Monitoring of monitoring. "Be aware of the quality of awareness itself."
+- 100: Full recursive self-observation. "Watch the watcher."
+
+### D10. Relational Orientation (RO) [0-100]
+How much does the practice involve others, real or imagined?
+- 0: Entirely solitary.
+- 50: Specific others. "Bring to mind a loved one, a neutral person, a difficult person."
+- 100: Fundamentally interpersonal.
+
+---
+
+## Input
+
+**Title**: {title}
+**Channel**: {channel}
+**Duration**: {duration_minutes} minutes
+
+**Pass 1 Indicators**:
+{pass1_summary}
+
+**Transcript**:
+{transcript}
+
+---
+
+## Instructions
+
+1. Read the full transcript carefully.
+2. For each continuous dimension (D1, D2, D5-D10), assign a score from 0-100.
+3. For D3, choose exactly one category.
+4. For D4, list all applicable categories.
+5. For each score, write a one-sentence justification citing specific language from the transcript.
+6. Assign a confidence level (high, medium, low) for each score.
+7. If the transcript is too short, garbled, or clearly not a meditation, set all scores to null and explain in "notes".
+
+Output ONLY valid JSON matching this schema:
+
+```json
+{
+  "scores": {
+    "D1_attentional_constraint": <int 0-100>,
+    "D2_somatic_engagement": <int 0-100>,
+    "D3_startup_modality": "<string: none|breath_regulation|body_scan|physical_movement|relaxation_induction>",
+    "D4_object_nature": ["<string>", ...],
+    "D5_object_density": <int 0-100>,
+    "D6_temporal_dynamics": <int 0-100>,
+    "D7_affective_cultivation": <int 0-100>,
+    "D8_interoceptive_demand": <int 0-100>,
+    "D9_metacognitive_load": <int 0-100>,
+    "D10_relational_orientation": <int 0-100>
+  },
+  "confidence": {
+    "D1": "<high|medium|low>",
+    "D2": "<high|medium|low>",
+    "D3": "<high|medium|low>",
+    "D4": "<high|medium|low>",
+    "D5": "<high|medium|low>",
+    "D6": "<high|medium|low>",
+    "D7": "<high|medium|low>",
+    "D8": "<high|medium|low>",
+    "D9": "<high|medium|low>",
+    "D10": "<high|medium|low>"
+  },
+  "justifications": {
+    "D1": "<one sentence>",
+    "D2": "<one sentence>",
+    "D3": "<one sentence>",
+    "D4": "<one sentence>",
+    "D5": "<one sentence>",
+    "D6": "<one sentence>",
+    "D7": "<one sentence>",
+    "D8": "<one sentence>",
+    "D9": "<one sentence>",
+    "D10": "<one sentence>"
+  },
+  "notes": "<optional string, for flagging issues with the transcript>"
+}
+```

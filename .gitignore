@@ -1,22 +1,27 @@
-# Virtual environments
-.venv/
-venv/
-env/
-
 # Python
 __pycache__/
 *.py[cod]
 *.egg-info/
+.venv/
+venv/
 dist/
 build/
+
+# Data (large files, sensitive content)
+data/raw/
+data/scored/
+output/
+
+# Env files
+.env
+*.env
 
 # IDE
 .vscode/
 .idea/
 
-# OS
-.DS_Store
-Thumbs.db
+# pytest
+.pytest_cache/
 
-# Output
-output/
+# mypy
+.mypy_cache/

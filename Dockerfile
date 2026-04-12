@@ -1,20 +1,25 @@
 FROM python:3.12-slim
 
 LABEL maintainer="priya"
-LABEL description="CAT — meditation script scrapers and scorer"
+LABEL description="CAT — Cognitive Appraisal Theory study: meditation transcript scraping and scoring"
 
 WORKDIR /app
 
-# Install dependencies
-RUN pip install --no-cache-dir \
-    requests>=2.31 \
-    beautifulsoup4>=4.12
+# Install yt-dlp system dependency (ffmpeg for audio extraction if needed)
+RUN apt-get update -q && apt-get install -y --no-install-recommends ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy source
-COPY src/ src/
+# Copy project files
+COPY pyproject.toml .
+COPY scrape_meditations.py .
+COPY scoring/ scoring/
+COPY scraping/ scraping/
 
-# Data output directory
-RUN mkdir -p /app/data/raw
+# Install the package with dependencies
+RUN pip install --no-cache-dir ".[dev]"
 
-# Default: show available scrapers
-CMD ["python", "-c", "import os; print('Available scrapers:'); [print(' ', f) for f in os.listdir('src') if f.startswith('scrape')]"]
+# Data directories
+RUN mkdir -p /app/data/raw /app/data/scored /app/output
+
+# Default: run the scoring pipeline help
+CMD ["python", "-m", "scoring.pipeline", "--help"]

@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cat"
+version = "0.1.0"
+description = "Cognitive Appraisal Theory (CAT) study — meditation transcript scraping and scoring"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.12"
+authors = [
+    {name = "Leonardo Benitez", email = "lsbenitezpereira@gmail.com"},
+]
+dependencies = [
+    "youtube-transcript-api>=0.6",
+    "yt-dlp>=2024.1",
+    "requests>=2.31",
+    "beautifulsoup4>=4.12",
+    "anthropic>=0.28",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "mypy>=1.10",
+    "types-requests>=2.31",
+    "types-beautifulsoup4>=4.12",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
