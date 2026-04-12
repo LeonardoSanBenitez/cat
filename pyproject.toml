@@ -7,7 +7,7 @@ name = "cat"
 version = "0.1.0"
 description = "Cognitive Appraisal Theory (CAT) study — meditation transcript scraping and scoring"
 readme = "README.md"
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
 requires-python = ">=3.12"
 authors = [
     {name = "Leonardo Benitez", email = "lsbenitezpereira@gmail.com"},
@@ -27,6 +27,9 @@ dev = [
     "types-requests>=2.31",
     "types-beautifulsoup4>=4.12",
 ]
+
+[tool.setuptools.packages.find]
+include = ["scoring*", "scraping*", "analysis*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
