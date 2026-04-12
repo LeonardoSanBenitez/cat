@@ -195,6 +195,99 @@ class TestSearchYoutube:
         assert results == []
 
 
+# ---------- Tests: fetch_transcript ----------
+
+class TestFetchTranscript:
+    """Tests for fetch_transcript using the instance-based youtube-transcript-api >= 1.0."""
+
+    def _make_segments(self) -> list[Any]:
+        return _make_transcript_segments()
+
+    def test_fetches_english_transcript(self) -> None:
+        """Happy path: _yt_api.fetch() returns segments directly."""
+        from scrape_meditations import fetch_transcript
+        import scrape_meditations as sm
+
+        segments = _make_transcript_segments()
+        with mock.patch.object(sm._yt_api, "fetch", return_value=segments) as mock_fetch:
+            result = fetch_transcript("abc123")
+
+        assert result is not None
+        full_text, timestamped = result
+        assert "Welcome" in full_text
+        assert len(timestamped) == 3
+        assert timestamped[0]["text"] == "Welcome to this meditation"
+        mock_fetch.assert_called_once_with("abc123", languages=["en"])
+
+    def test_fallback_to_list_on_direct_fetch_failure(self) -> None:
+        """When fetch() raises, falls back to list() and finds English transcript."""
+        from scrape_meditations import fetch_transcript
+        import scrape_meditations as sm
+
+        segments = _make_transcript_segments()
+
+        class FakeTranscript:
+            language_code = "en"
+
+            def fetch(self) -> list[Any]:
+                return segments
+
+        fake_list = [FakeTranscript()]
+
+        with mock.patch.object(sm._yt_api, "fetch", side_effect=Exception("no direct")):
+            with mock.patch.object(sm._yt_api, "list", return_value=fake_list):
+                result = fetch_transcript("abc123")
+
+        assert result is not None
+        full_text, timestamped = result
+        assert "Welcome" in full_text
+
+    def test_returns_none_when_no_english_in_list(self) -> None:
+        """When fetch() raises and list() has no English transcript, returns None."""
+        from scrape_meditations import fetch_transcript
+        import scrape_meditations as sm
+
+        class FakeTranscript:
+            language_code = "fr"
+
+            def fetch(self) -> list[Any]:
+                return []
+
+        with mock.patch.object(sm._yt_api, "fetch", side_effect=Exception("no direct")):
+            with mock.patch.object(sm._yt_api, "list", return_value=[FakeTranscript()]):
+                result = fetch_transcript("abc123")
+
+        assert result is None
+
+    def test_returns_none_when_all_fail(self) -> None:
+        """Returns None when both fetch() and list() raise."""
+        from scrape_meditations import fetch_transcript
+        import scrape_meditations as sm
+
+        with mock.patch.object(sm._yt_api, "fetch", side_effect=Exception("no direct")):
+            with mock.patch.object(sm._yt_api, "list", side_effect=Exception("no list")):
+                result = fetch_transcript("abc123")
+
+        assert result is None
+
+    def test_handles_dict_segments(self) -> None:
+        """Handles dict-style segments (older format fallback)."""
+        from scrape_meditations import fetch_transcript
+        import scrape_meditations as sm
+
+        dict_segments: list[dict[str, Any]] = [
+            {"start": 0.0, "duration": 5.0, "text": "Hello"},
+            {"start": 5.0, "duration": 5.0, "text": "World"},
+        ]
+        with mock.patch.object(sm._yt_api, "fetch", return_value=dict_segments):
+            result = fetch_transcript("abc123")
+
+        assert result is not None
+        full_text, timestamped = result
+        assert full_text == "Hello World"
+        assert len(timestamped) == 2
+
+
 # ---------- Tests: process_query ----------
 
 class TestProcessQuery:
