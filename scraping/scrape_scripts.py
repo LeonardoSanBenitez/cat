@@ -8,6 +8,7 @@ import json
 import os
 import re
 import time
+from typing import Any
 import requests
 from bs4 import BeautifulSoup, Tag
 
@@ -93,7 +94,7 @@ def scrape_page(url: str) -> str | None:
     return "\n\n".join(paragraphs)
 
 
-def scrape_source(scripts: list[tuple[str, str]], source_name: str) -> list[dict[str, str | int]]:
+def scrape_source(scripts: list[tuple[str, str]], source_name: str) -> list[dict[str, Any]]:
     """Scrape a list of (title, url) pairs from a source."""
     results = []
     for i, (title, url) in enumerate(scripts):
@@ -114,7 +115,7 @@ def scrape_source(scripts: list[tuple[str, str]], source_name: str) -> list[dict
     return results
 
 
-def save_results(results: list[dict[str, str | int]], filename: str) -> str:
+def save_results(results: list[dict[str, Any]], filename: str) -> str:
     """Save scraped results to JSON and individual text files."""
     out_dir = os.path.join(OUTPUT_DIR, filename)
     os.makedirs(out_dir, exist_ok=True)
@@ -142,7 +143,7 @@ def save_results(results: list[dict[str, str | int]], filename: str) -> str:
 
 def main() -> None:
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    all_results: list[dict[str, str | int]] = []
+    all_results: list[dict[str, Any]] = []
 
     # Source 1: the-guided-meditation-site.com
     print("\n=== Source: the-guided-meditation-site.com ===")

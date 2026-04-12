@@ -8,6 +8,7 @@ import json
 import os
 import re
 import time
+from typing import Any
 import requests
 from bs4 import BeautifulSoup, Tag
 
@@ -56,7 +57,7 @@ def get_script_links() -> list[dict[str, str]]:
     return unique
 
 
-def scrape_script(url: str, title: str) -> dict[str, str | int] | None:
+def scrape_script(url: str, title: str) -> dict[str, Any] | None:
     """Scrape a single script page."""
     try:
         resp = requests.get(url, headers=HEADERS, timeout=30)
@@ -131,7 +132,6 @@ def main() -> None:
             f.write("---\n\n")
             f.write(script["text"])
 
-    return results
 
 
 if __name__ == "__main__":
