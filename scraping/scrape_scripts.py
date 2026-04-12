@@ -9,7 +9,7 @@ import os
 import re
 import time
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "raw")
 HEADERS = {
@@ -72,7 +72,7 @@ def scrape_page(url: str) -> str | None:
                soup.find("main") or
                soup.find("body"))
 
-    if not content:
+    if not content or not isinstance(content, Tag):
         return None
 
     # Extract paragraphs
@@ -93,7 +93,7 @@ def scrape_page(url: str) -> str | None:
     return "\n\n".join(paragraphs)
 
 
-def scrape_source(scripts: list[tuple[str, str]], source_name: str) -> list[dict]:
+def scrape_source(scripts: list[tuple[str, str]], source_name: str) -> list[dict[str, str | int]]:
     """Scrape a list of (title, url) pairs from a source."""
     results = []
     for i, (title, url) in enumerate(scripts):
@@ -114,7 +114,7 @@ def scrape_source(scripts: list[tuple[str, str]], source_name: str) -> list[dict
     return results
 
 
-def save_results(results: list[dict], filename: str):
+def save_results(results: list[dict[str, str | int]], filename: str) -> str:
     """Save scraped results to JSON and individual text files."""
     out_dir = os.path.join(OUTPUT_DIR, filename)
     os.makedirs(out_dir, exist_ok=True)
@@ -140,9 +140,9 @@ def save_results(results: list[dict], filename: str):
     return json_path
 
 
-def main():
+def main() -> None:
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    all_results = []
+    all_results: list[dict[str, str | int]] = []
 
     # Source 1: the-guided-meditation-site.com
     print("\n=== Source: the-guided-meditation-site.com ===")

@@ -9,7 +9,7 @@ import os
 import re
 import time
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 BASE_URL = "https://www.the-guided-meditation-site.com"
 INDEX_URL = f"{BASE_URL}/guided-meditation-scripts.html"
@@ -20,7 +20,7 @@ HEADERS = {
 }
 
 
-def get_script_links():
+def get_script_links() -> list[dict[str, str]]:
     """Get all meditation script links from the index page."""
     resp = requests.get(INDEX_URL, headers=HEADERS, timeout=30)
     resp.raise_for_status()
@@ -50,7 +50,7 @@ def get_script_links():
     return unique
 
 
-def scrape_script(url, title):
+def scrape_script(url: str, title: str) -> dict[str, str | int] | None:
     """Scrape a single meditation script page."""
     try:
         resp = requests.get(url, headers=HEADERS, timeout=30)
@@ -69,7 +69,7 @@ def scrape_script(url, title):
         # Fallback: get all paragraphs from body
         content_div = soup.find("body")
 
-    if content_div is None:
+    if content_div is None or not isinstance(content_div, Tag):
         print(f"  WARNING: no content found for {url}")
         return None
 
@@ -95,7 +95,7 @@ def scrape_script(url, title):
     }
 
 
-def main():
+def main() -> None:
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
     print("Fetching script index...")

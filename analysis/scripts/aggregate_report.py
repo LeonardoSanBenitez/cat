@@ -118,7 +118,7 @@ def compute_correlation(x: list[float], y: list[float]) -> float:
     sy = (sum((yi - my) ** 2 for yi in y) / (n - 1)) ** 0.5
     if sx == 0 or sy == 0:
         return 0.0
-    return round(cov / (sx * sy), 3)
+    return float(round(cov / (sx * sy), 3))
 
 
 def generate_distribution_summary(
@@ -132,7 +132,7 @@ def generate_distribution_summary(
     csv_rows = []
 
     for dim in CONTINUOUS_DIMS:
-        values = [row[dim] for row in matrix if row[dim] is not None]
+        values: list[float] = [v for row in matrix if (v := row[dim]) is not None]
         stats = compute_stats(values)
 
         short = SHORT_NAMES.get(dim, dim)
@@ -167,8 +167,9 @@ def generate_correlation_matrix(
 
     for i, row in enumerate(matrix):
         for dim in CONTINUOUS_DIMS:
-            if row[dim] is not None:
-                dim_values[dim].append(row[dim])
+            val = row[dim]
+            if val is not None:
+                dim_values[dim].append(val)
 
     lines = ["# Correlation Matrix", ""]
 
@@ -233,21 +234,22 @@ def generate_pca_analysis(
     n = len(complete)
     k = len(CONTINUOUS_DIMS)
 
-    # Standardize
-    means = []
-    stds = []
+    # Standardize (complete rows guaranteed to have no None values by the filter above)
+    means: list[float] = []
+    stds: list[float] = []
     for dim in CONTINUOUS_DIMS:
-        vals = [row[dim] for row in complete]
+        vals: list[float] = [row[dim] for row in complete]  # type: ignore[misc]
         m = sum(vals) / n
         s = (sum((v - m) ** 2 for v in vals) / (n - 1)) ** 0.5
         means.append(m)
         stds.append(s if s > 0 else 1.0)
 
-    standardized = []
+    standardized: list[list[float]] = []
     for row in complete:
-        z = []
+        z: list[float] = []
         for j, dim in enumerate(CONTINUOUS_DIMS):
-            z.append((row[dim] - means[j]) / stds[j])
+            raw = row[dim]
+            z.append((raw - means[j]) / stds[j])  # type: ignore[operator]
         standardized.append(z)
 
     # Compute correlation matrix (k x k)

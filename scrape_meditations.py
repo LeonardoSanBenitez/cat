@@ -21,7 +21,7 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
-from youtube_transcript_api import YouTubeTranscriptApi  # type: ignore[import-untyped]
+from youtube_transcript_api import YouTubeTranscriptApi
 
 logger = logging.getLogger(__name__)
 
@@ -163,15 +163,9 @@ def fetch_transcript(video_id: str) -> tuple[str, list[dict[str, Any]]] | None:
     timestamped: list[dict[str, Any]] = []
     text_parts: list[str] = []
     for seg in segments:
-        # Handle both dict-like and object-like segment formats
-        if hasattr(seg, "text"):
-            text = seg.text
-            start = seg.start
-            duration = seg.duration
-        else:
-            text = seg.get("text", "")
-            start = seg.get("start", 0)
-            duration = seg.get("duration", 0)
+        text = seg.text
+        start = seg.start
+        duration = seg.duration
         timestamped.append({
             "start": start,
             "duration": duration,

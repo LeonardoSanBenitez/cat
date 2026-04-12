@@ -280,7 +280,7 @@ D9_HIGH = [
 ]
 
 # D10: Relational Orientation (RO)
-D10_LOW_SIGNALS = [
+D10_LOW_SIGNALS: list[str] = [
     # Absence indicators -- if ONLY these appear, RO is low
     # (scored by absence of D10_HIGH)
 ]
