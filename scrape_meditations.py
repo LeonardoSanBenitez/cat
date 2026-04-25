@@ -159,13 +159,21 @@ def fetch_transcript(video_id: str) -> tuple[str, list[dict[str, Any]]] | None:
             logger.debug("No transcripts available for %s", video_id)
             return None
 
-    # Build timestamped list and full text
+    # Build timestamped list and full text.
+    # youtube-transcript-api >= 1.0 returns FetchedTranscriptSnippet objects
+    # (attribute access); earlier versions and some mocks return plain dicts.
+    # Support both forms defensively.
     timestamped: list[dict[str, Any]] = []
     text_parts: list[str] = []
     for seg in segments:
-        text = seg.text
-        start = seg.start
-        duration = seg.duration
+        if isinstance(seg, dict):
+            text = seg["text"]
+            start = seg["start"]
+            duration = seg["duration"]
+        else:
+            text = seg.text
+            start = seg.start
+            duration = seg.duration
         timestamped.append({
             "start": start,
             "duration": duration,
