@@ -22,3 +22,6 @@ jobs:
 
       - name: Run mypy
         run: mypy scrape_meditations.py scoring/ scraping/ analysis/
+
+      - name: Run unit tests
+        run: pytest tests/ -v
