@@ -1,17 +1,32 @@
 #!/usr/bin/env python3
 """CAT Scoring Pipeline: Pass 1 (keyword detection) + Pass 2 (LLM scoring).
 
-Reads scraped meditation JSONL, runs Pass 1 indicator detection, optionally
-runs Pass 2 LLM scoring via the Anthropic API, and writes scored output.
+Reads scraped meditation data, runs Pass 1 indicator detection, optionally
+runs Pass 2 LLM scoring, and writes scored output.
+
+Pass 2 supports two backends:
+  - ollama (default): local Ollama instance at http://localhost:11434/v1
+                      Free to run, no API key required. Requires Ollama running.
+  - anthropic: Anthropic Claude API. Requires ANTHROPIC_API_KEY env var.
+
+The Ollama backend is the preferred backend. Use Claude only when you need a
+specific Anthropic model or are running in a context where local inference is
+unavailable.
 
 Usage:
-    # Pass 1 only (no API key needed):
+    # Pass 1 only (no LLM needed):
     python -m scoring.pipeline data/raw/meditations.jsonl -o data/scored/pass1.jsonl
 
-    # Pass 1 + Pass 2 (requires ANTHROPIC_API_KEY):
+    # Pass 1 + Pass 2 via Ollama (default — local, free):
     python -m scoring.pipeline data/raw/meditations.jsonl -o data/scored/full.jsonl --pass2
 
-    # Score a single meditation (for testing):
+    # Pass 1 + Pass 2 via Ollama with a specific model:
+    python -m scoring.pipeline data/raw/meditations.jsonl -o data/scored/full.jsonl --pass2 --model qwen3:4b
+
+    # Pass 1 + Pass 2 via Anthropic API:
+    ANTHROPIC_API_KEY=... python -m scoring.pipeline data/raw/meditations.jsonl -o data/scored/full.jsonl --pass2 --backend anthropic
+
+    # Score a single record (for testing):
     python -m scoring.pipeline data/raw/meditations.jsonl -o data/scored/test.jsonl --id VIDEO_ID
 """
 
@@ -34,7 +49,15 @@ from scoring.pass1_indicators import format_pass1_summary, score_transcript
 logger = logging.getLogger(__name__)
 
 PASS2_PROMPT_PATH = Path(__file__).parent / "pass2_llm_prompt.txt"
-DEFAULT_MODEL = "claude-sonnet-4-20250514"
+
+# Ollama (local, default)
+DEFAULT_BACKEND = "ollama"
+DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434/v1"
+DEFAULT_OLLAMA_MODEL = "qwen3:4b"
+
+# Anthropic (cloud, explicit opt-in)
+DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
+
 MAX_TRANSCRIPT_CHARS = 30000  # truncate very long transcripts for LLM
 
 
@@ -44,17 +67,30 @@ def load_pass2_prompt() -> str:
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
-    """Read JSONL file, returning list of records."""
-    records = []
-    with open(path) as f:
-        for line_num, line in enumerate(f, 1):
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                records.append(json.loads(line))
-            except json.JSONDecodeError as e:
-                logger.warning(f"Skipping invalid JSON on line {line_num}: {e}")
+    """Read JSON or JSONL file, returning list of records.
+
+    Auto-detects format:
+    - If the file starts with '[', treats it as a JSON array.
+    - Otherwise treats each non-empty line as a separate JSON object (JSONL).
+    """
+    raw = path.read_text(encoding="utf-8").lstrip()
+    if raw.startswith("["):
+        # JSON array
+        data = json.loads(raw)
+        if not isinstance(data, list):
+            raise ValueError(f"Expected a JSON array in {path}, got {type(data).__name__}")
+        return data  # type: ignore[return-value]
+
+    # JSONL: one JSON object per line
+    records: list[dict[str, Any]] = []
+    for line_num, line in enumerate(raw.splitlines(), 1):
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            records.append(json.loads(line))
+        except json.JSONDecodeError as e:
+            logger.warning(f"Skipping invalid JSON on line {line_num}: {e}")
     return records
 
 
@@ -67,6 +103,21 @@ def write_jsonl(records: list[dict[str, Any]], path: Path) -> None:
     logger.info(f"Wrote {len(records)} records to {path}")
 
 
+def normalize_record(record: dict[str, Any]) -> dict[str, Any]:
+    """Normalize field names across data sources.
+
+    Different scrapers use different field names for the transcript text:
+      - YouTube scraper: "transcript_text"
+      - Script scrapers (guided_meditation_site, inner_health_studio): "text"
+
+    This function unifies them into "transcript_text" without duplicating the
+    content. Mutates and returns the record.
+    """
+    if "transcript_text" not in record and "text" in record:
+        record["transcript_text"] = record["text"]
+    return record
+
+
 def run_pass1(record: dict[str, Any]) -> dict[str, Any]:
     """Run Pass 1 keyword detection on a single record.
 
@@ -75,7 +126,7 @@ def run_pass1(record: dict[str, Any]) -> dict[str, Any]:
     text = record.get("transcript_text", "")
     if not text or len(text) < 100:
         logger.warning(
-            f"Skipping {record.get('video_id', '?')}: transcript too short "
+            f"Skipping {record.get('video_id', record.get('title', '?'))}: transcript too short "
             f"({len(text)} chars)"
         )
         record["pass1_scores"] = None
@@ -99,14 +150,114 @@ def run_pass1(record: dict[str, Any]) -> dict[str, Any]:
     return record
 
 
-def run_pass2(
+def _build_pass2_prompt(
     record: dict[str, Any],
     prompt_template: str,
-    model: str = DEFAULT_MODEL,
+) -> str:
+    """Build the filled prompt string for Pass 2 from a record and template."""
+    text = record.get("transcript_text", "")
+    if len(text) > MAX_TRANSCRIPT_CHARS:
+        text = text[:MAX_TRANSCRIPT_CHARS] + "\n\n[TRANSCRIPT TRUNCATED]"
+
+    pass1 = record.get("pass1_scores")
+    pass1_summary = format_pass1_summary(pass1) if pass1 else "(Pass 1 not available)"
+
+    duration_sec = record.get("duration_seconds", 0)
+    duration_min = round(duration_sec / 60, 1) if duration_sec else "unknown"
+
+    return prompt_template.format(
+        title=record.get("title", "Unknown"),
+        channel=record.get("channel", "Unknown"),
+        duration_minutes=duration_min,
+        pass1_summary=pass1_summary,
+        transcript=text,
+    )
+
+
+def _parse_llm_response(response_text: str) -> dict[str, Any]:
+    """Parse JSON from LLM response, stripping markdown fences if present."""
+    json_text = response_text.strip()
+    if json_text.startswith("```"):
+        lines = json_text.split("\n")
+        lines = [line for line in lines if not line.strip().startswith("```")]
+        json_text = "\n".join(lines)
+    return json.loads(json_text)  # type: ignore[no-any-return]
+
+
+def run_pass2_ollama(
+    record: dict[str, Any],
+    prompt_template: str,
+    model: str = DEFAULT_OLLAMA_MODEL,
+    base_url: str = DEFAULT_OLLAMA_BASE_URL,
 ) -> dict[str, Any]:
-    """Run Pass 2 LLM scoring on a single record.
+    """Run Pass 2 LLM scoring using a local Ollama instance (OpenAI-compat API).
+
+    Requires the openai package and Ollama running at base_url.
+    No API key needed — api_key is set to the literal string "ollama" as required
+    by the openai client (which mandates a non-empty api_key parameter).
+
+    Adds 'llm_scores', 'llm_confidence', 'llm_justifications' to the record.
+    """
+    try:
+        import openai
+    except ImportError:
+        logger.error("openai package not installed. Run: pip install openai")
+        record["pass2_error"] = "openai package not installed"
+        return record
+
+    text = record.get("transcript_text", "")
+    if not text:
+        record["pass2_error"] = "no transcript"
+        return record
+
+    client = openai.OpenAI(base_url=base_url, api_key="ollama")
+
+    prompt = _build_pass2_prompt(record, prompt_template)
+
+    response_text = ""
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            max_tokens=2000,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        response_text = response.choices[0].message.content or ""
+
+        result = _parse_llm_response(response_text)
+
+        record["llm_scores"] = result.get("scores", {})
+        record["llm_confidence"] = result.get("confidence", {})
+        record["llm_justifications"] = result.get("justifications", {})
+        record["llm_notes"] = result.get("notes")
+        record["llm_model"] = f"ollama:{model}"
+        record["llm_backend"] = "ollama"
+
+    except json.JSONDecodeError as e:
+        logger.error(
+            f"Failed to parse Ollama response for {record.get('video_id', record.get('title', '?'))}: {e}"
+        )
+        record["pass2_error"] = f"JSON parse error: {e}"
+        record["llm_raw_response"] = response_text[:1000]
+
+    except Exception as e:
+        logger.error(
+            f"Ollama API error for {record.get('video_id', record.get('title', '?'))}: {e}"
+        )
+        record["pass2_error"] = str(e)
+
+    return record
+
+
+def run_pass2_anthropic(
+    record: dict[str, Any],
+    prompt_template: str,
+    model: str = DEFAULT_ANTHROPIC_MODEL,
+) -> dict[str, Any]:
+    """Run Pass 2 LLM scoring via the Anthropic Claude API.
 
     Requires the anthropic package and ANTHROPIC_API_KEY env var.
+    This backend consumes paid API tokens. Prefer run_pass2_ollama for bulk scoring.
+
     Adds 'llm_scores', 'llm_confidence', 'llm_justifications' to the record.
     """
     try:
@@ -116,37 +267,16 @@ def run_pass2(
         record["pass2_error"] = "anthropic package not installed"
         return record
 
-    client = anthropic.Anthropic()
-
     text = record.get("transcript_text", "")
     if not text:
         record["pass2_error"] = "no transcript"
         return record
 
-    # Truncate if needed
-    if len(text) > MAX_TRANSCRIPT_CHARS:
-        text = text[:MAX_TRANSCRIPT_CHARS] + "\n\n[TRANSCRIPT TRUNCATED]"
+    client = anthropic.Anthropic()
 
-    # Build Pass 1 summary
-    pass1 = record.get("pass1_scores")
-    if pass1:
-        pass1_summary = format_pass1_summary(pass1)
-    else:
-        pass1_summary = "(Pass 1 not available)"
+    prompt = _build_pass2_prompt(record, prompt_template)
 
-    # Duration in minutes
-    duration_sec = record.get("duration_seconds", 0)
-    duration_min = round(duration_sec / 60, 1) if duration_sec else "unknown"
-
-    # Fill prompt
-    prompt = prompt_template.format(
-        title=record.get("title", "Unknown"),
-        channel=record.get("channel", "Unknown"),
-        duration_minutes=duration_min,
-        pass1_summary=pass1_summary,
-        transcript=text,
-    )
-
+    response_text = ""
     try:
         response = client.messages.create(
             model=model,
@@ -154,43 +284,61 @@ def run_pass2(
             messages=[{"role": "user", "content": prompt}],
         )
 
-        # Extract text content
-        response_text = ""
         for block in response.content:
             if hasattr(block, "text"):
                 response_text += block.text
 
-        # Parse JSON from response
-        # Handle potential markdown code blocks
-        json_text = response_text.strip()
-        if json_text.startswith("```"):
-            # Remove code fence
-            lines = json_text.split("\n")
-            lines = [l for l in lines if not l.strip().startswith("```")]
-            json_text = "\n".join(lines)
-
-        result = json.loads(json_text)
+        result = _parse_llm_response(response_text)
 
         record["llm_scores"] = result.get("scores", {})
         record["llm_confidence"] = result.get("confidence", {})
         record["llm_justifications"] = result.get("justifications", {})
         record["llm_notes"] = result.get("notes")
         record["llm_model"] = model
+        record["llm_backend"] = "anthropic"
 
     except json.JSONDecodeError as e:
         logger.error(
-            f"Failed to parse LLM response for {record.get('video_id', '?')}: {e}"
+            f"Failed to parse Anthropic response for {record.get('video_id', record.get('title', '?'))}: {e}"
         )
         record["pass2_error"] = f"JSON parse error: {e}"
         record["llm_raw_response"] = response_text[:1000]
 
     except Exception as e:
         logger.error(
-            f"LLM API error for {record.get('video_id', '?')}: {e}"
+            f"Anthropic API error for {record.get('video_id', record.get('title', '?'))}: {e}"
         )
         record["pass2_error"] = str(e)
 
     return record
+
+
+def run_pass2(
+    record: dict[str, Any],
+    prompt_template: str,
+    model: str = DEFAULT_OLLAMA_MODEL,
+    backend: str = DEFAULT_BACKEND,
+    ollama_base_url: str = DEFAULT_OLLAMA_BASE_URL,
+) -> dict[str, Any]:
+    """Run Pass 2 LLM scoring on a single record, dispatching to the chosen backend.
+
+    Args:
+        record: Meditation record dict, modified in place.
+        prompt_template: Filled prompt template string.
+        model: Model name. For ollama: e.g. "qwen3:4b". For anthropic: Anthropic model ID.
+        backend: "ollama" (default) or "anthropic".
+        ollama_base_url: Ollama API base URL (only used when backend="ollama").
+
+    Returns:
+        The record dict with llm_scores, llm_confidence, llm_justifications added.
+    """
+    if backend == "ollama":
+        return run_pass2_ollama(record, prompt_template, model=model, base_url=ollama_base_url)
+    elif backend == "anthropic":
+        return run_pass2_anthropic(record, prompt_template, model=model)
+    else:
+        record["pass2_error"] = f"Unknown backend: {backend!r}. Choose 'ollama' or 'anthropic'."
+        return record
 
 
 def merge_scores(record: dict[str, Any]) -> dict[str, Any]:
@@ -247,11 +395,26 @@ def score_dataset(
     input_path: Path,
     output_path: Path,
     run_llm: bool = False,
-    model: str = DEFAULT_MODEL,
+    model: str = DEFAULT_OLLAMA_MODEL,
+    backend: str = DEFAULT_BACKEND,
+    ollama_base_url: str = DEFAULT_OLLAMA_BASE_URL,
     filter_id: str | None = None,
     rate_limit_delay: float = 1.0,
 ) -> None:
-    """Score all meditations in a JSONL file."""
+    """Score all meditations in a JSONL file.
+
+    Args:
+        input_path: Input JSONL file (one record per line).
+        output_path: Output JSONL path.
+        run_llm: If True, run Pass 2 LLM scoring in addition to Pass 1.
+        model: LLM model name. Defaults to qwen3:4b (Ollama).
+        backend: LLM backend: "ollama" (default) or "anthropic".
+        ollama_base_url: Ollama API base URL (ignored when backend=anthropic).
+        filter_id: If set, score only the record with this video_id.
+        rate_limit_delay: Seconds to wait between LLM calls (for Anthropic rate limits).
+                          Ollama is local so delay can safely be 0, but default is kept
+                          for safety.
+    """
     records = read_jsonl(input_path)
     logger.info(f"Loaded {len(records)} records from {input_path}")
 
@@ -266,7 +429,10 @@ def score_dataset(
 
     scored = []
     for i, record in enumerate(records):
-        vid = record.get("video_id", f"record_{i}")
+        # Normalize field names (transcript_text vs text)
+        record = normalize_record(record)
+
+        vid = record.get("video_id", record.get("title", f"record_{i}"))
         logger.info(f"[{i+1}/{len(records)}] Scoring {vid}...")
 
         # Pass 1
@@ -278,8 +444,14 @@ def score_dataset(
 
         # Pass 2 (LLM)
         if run_llm:
-            record = run_pass2(record, prompt_template, model)
-            if i < len(records) - 1:
+            record = run_pass2(
+                record,
+                prompt_template,
+                model=model,
+                backend=backend,
+                ollama_base_url=ollama_base_url,
+            )
+            if rate_limit_delay > 0 and i < len(records) - 1:
                 time.sleep(rate_limit_delay)
 
         # Merge
@@ -293,19 +465,66 @@ def score_dataset(
     llm_count = sum(1 for r in scored if "llm_scores" in r and r["llm_scores"])
     errors = sum(1 for r in scored if "pass2_error" in r)
 
-    logger.info(f"Done. {scored_count} scored via Pass 1, {llm_count} via Pass 2, {errors} errors.")
+    logger.info(
+        f"Done. {scored_count} scored via Pass 1, {llm_count} via Pass 2 "
+        f"(backend={backend}, model={model}), {errors} errors."
+    )
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="CAT Scoring Pipeline")
-    parser.add_argument("input", type=Path, help="Input JSONL (scraped meditations)")
+    parser = argparse.ArgumentParser(
+        description="CAT Scoring Pipeline",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Pass 1 only (fast, no LLM):
+  python -m scoring.pipeline data/raw/all_scripts.json -o data/scored/pass1.jsonl
+
+  # Pass 1 + Pass 2 via local Ollama (preferred for bulk runs):
+  python -m scoring.pipeline data/raw/all_scripts.json -o data/scored/full.jsonl --pass2
+
+  # Pass 1 + Pass 2 via Anthropic (use sparingly — costs tokens):
+  ANTHROPIC_API_KEY=... python -m scoring.pipeline data/raw/all_scripts.json \\
+      -o data/scored/full.jsonl --pass2 --backend anthropic
+
+  # Test on a single record:
+  python -m scoring.pipeline data/raw/all_scripts.json -o data/scored/test.jsonl --id my_id
+""",
+    )
+    parser.add_argument("input", type=Path, help="Input JSON or JSONL (scraped meditations)")
     parser.add_argument("-o", "--output", type=Path, required=True, help="Output JSONL")
     parser.add_argument(
-        "--pass2", action="store_true", help="Run Pass 2 LLM scoring (needs ANTHROPIC_API_KEY)"
+        "--pass2", action="store_true", help="Run Pass 2 LLM scoring"
     )
-    parser.add_argument("--model", default=DEFAULT_MODEL, help=f"LLM model (default: {DEFAULT_MODEL})")
-    parser.add_argument("--id", dest="filter_id", help="Score only this video_id")
-    parser.add_argument("--rate-limit", type=float, default=1.0, help="Seconds between LLM calls")
+    parser.add_argument(
+        "--backend",
+        choices=["ollama", "anthropic"],
+        default=DEFAULT_BACKEND,
+        help=(
+            f"LLM backend for Pass 2. 'ollama' (default) uses the local Ollama instance "
+            f"(free, no API key). 'anthropic' uses the Anthropic API (requires ANTHROPIC_API_KEY)."
+        ),
+    )
+    parser.add_argument(
+        "--model",
+        default=None,
+        help=(
+            f"LLM model name. For ollama: default is '{DEFAULT_OLLAMA_MODEL}'. "
+            f"For anthropic: default is '{DEFAULT_ANTHROPIC_MODEL}'."
+        ),
+    )
+    parser.add_argument(
+        "--ollama-url",
+        default=DEFAULT_OLLAMA_BASE_URL,
+        help=f"Ollama API base URL (default: {DEFAULT_OLLAMA_BASE_URL})",
+    )
+    parser.add_argument("--id", dest="filter_id", help="Score only the record with this video_id")
+    parser.add_argument(
+        "--rate-limit",
+        type=float,
+        default=0.0,
+        help="Seconds to wait between LLM calls. Default 0 (no delay) for Ollama; set to 1.0+ for Anthropic.",
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
 
     args = parser.parse_args()
@@ -315,15 +534,26 @@ def main() -> None:
         format="%(asctime)s %(levelname)s %(message)s",
     )
 
-    if args.pass2 and not os.environ.get("ANTHROPIC_API_KEY"):
-        logger.error("ANTHROPIC_API_KEY not set. Required for Pass 2.")
+    # Determine effective model
+    if args.model is not None:
+        effective_model = args.model
+    elif args.backend == "anthropic":
+        effective_model = DEFAULT_ANTHROPIC_MODEL
+    else:
+        effective_model = DEFAULT_OLLAMA_MODEL
+
+    # Validate backend prerequisites
+    if args.pass2 and args.backend == "anthropic" and not os.environ.get("ANTHROPIC_API_KEY"):
+        logger.error("ANTHROPIC_API_KEY not set. Required when --backend anthropic.")
         sys.exit(1)
 
     score_dataset(
         input_path=args.input,
         output_path=args.output,
         run_llm=args.pass2,
-        model=args.model,
+        model=effective_model,
+        backend=args.backend,
+        ollama_base_url=args.ollama_url,
         filter_id=args.filter_id,
         rate_limit_delay=args.rate_limit,
     )

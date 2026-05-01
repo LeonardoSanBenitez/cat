@@ -13,7 +13,7 @@ from scoring.pass1_indicators import score_transcript, format_pass1_summary
 from scoring.pipeline import run_pass1, merge_scores, read_jsonl, write_jsonl
 
 
-# --- Synthetic transcripts based on Jose's archetypes ---
+# --- Synthetic transcripts based on Maria's archetypes ---
 
 ANAPANASATI_TRANSCRIPT = """
 Welcome to this breath meditation. Find a comfortable seated position.

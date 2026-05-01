@@ -5,7 +5,7 @@ Reads scored JSONL and produces:
 1. Score distributions per dimension (CSV + text summary)
 2. Correlation matrix (CSV)
 3. PCA analysis (variance explained, loadings)
-4. Summary statistics for Jose's paper
+4. Summary statistics for Maria's paper
 
 Usage:
     python -m analysis.scripts.aggregate_report data/scored/full.jsonl -o analysis/results/
