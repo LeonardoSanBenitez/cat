@@ -5,7 +5,7 @@ Reads scraped meditation data, runs Pass 1 indicator detection, optionally
 runs Pass 2 LLM scoring, and writes scored output.
 
 Pass 2 supports two backends:
-  - ollama (default): local Ollama instance at http://localhost:11434/v1
+  - ollama (default): local Ollama instance via native /api/chat (http://localhost:11434).
                       Free to run, no API key required. Requires Ollama running.
   - anthropic: Anthropic Claude API. Requires ANTHROPIC_API_KEY env var.
 
@@ -241,44 +241,56 @@ def run_pass2_ollama(
     model: str = DEFAULT_OLLAMA_MODEL,
     base_url: str = DEFAULT_OLLAMA_BASE_URL,
 ) -> dict[str, Any]:
-    """Run Pass 2 LLM scoring using a local Ollama instance (OpenAI-compat API).
+    """Run Pass 2 LLM scoring using a local Ollama instance (native /api/chat endpoint).
 
-    Requires the openai package and Ollama running at base_url.
-    No API key needed — api_key is set to the literal string "ollama" as required
-    by the openai client (which mandates a non-empty api_key parameter).
+    Uses httpx directly against Ollama's native API rather than the OpenAI-compatible
+    /v1 shim.  The OpenAI-compat shim silently discards qwen3 thinking tokens: when
+    max_tokens is exhausted during the think phase the shim returns an empty
+    choices[0].message.content.  The native endpoint always returns thinking text
+    (wrapped in <think>...</think>) plus the answer in message.content, which
+    _parse_llm_response() already handles.
+
+    The chat URL is derived from base_url by stripping any trailing /v1 suffix, then
+    appending /api/chat.  With the default base_url of http://localhost:11434/v1 this
+    resolves to http://localhost:11434/api/chat.
 
     Adds 'llm_scores', 'llm_confidence', 'llm_justifications' to the record.
     """
-    try:
-        import openai
-    except ImportError:
-        logger.error("openai package not installed. Run: pip install openai")
-        record["pass2_error"] = "openai package not installed"
-        return record
-
     text = record.get("transcript_text", "")
     if not text:
         record["pass2_error"] = "no transcript"
         return record
 
+    # Derive the native API base (strip /v1 if present) and build the chat URL.
+    native_base = base_url.rstrip("/")
+    if native_base.endswith("/v1"):
+        native_base = native_base[:-3]
+    chat_url = f"{native_base}/api/chat"
+
+    prompt = _build_pass2_prompt(record, prompt_template)
+
+    payload: dict[str, Any] = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "stream": False,
+        "think": False,
+        "options": {"num_predict": 4000},
+    }
+
     # Use a long read timeout (30 min) so large transcripts processed by a
     # local model (e.g. qwen3:4b) are never aborted mid-generation.
     # connect timeout stays short (10 s) to catch a missing Ollama daemon fast.
     ollama_timeout = httpx.Timeout(1800.0, connect=10.0)
-    client = openai.OpenAI(base_url=base_url, api_key="ollama", timeout=ollama_timeout)
-
-    prompt = _build_pass2_prompt(record, prompt_template)
 
     response_text = ""
     t0 = time.monotonic()
     try:
-        response = client.chat.completions.create(
-            model=model,
-            max_tokens=4000,
-            messages=[{"role": "user", "content": prompt}],
-        )
+        http_response = httpx.post(chat_url, json=payload, timeout=ollama_timeout)
+        http_response.raise_for_status()
         elapsed = time.monotonic() - t0
-        response_text = response.choices[0].message.content or ""
+
+        response_data = http_response.json()
+        response_text = response_data.get("message", {}).get("content", "")
         logger.info(
             f"Ollama response for {record.get('video_id', record.get('title', '?'))}: "
             f"{elapsed:.1f}s ({len(response_text)} chars)"
