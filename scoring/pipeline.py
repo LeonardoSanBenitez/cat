@@ -33,9 +33,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import atexit
 import json
 import logging
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -182,13 +184,55 @@ def _build_pass2_prompt(
 
 
 def _parse_llm_response(response_text: str) -> dict[str, Any]:
-    """Parse JSON from LLM response, stripping markdown fences if present."""
+    """Parse JSON from LLM response.
+
+    Handles three common LLM output formats:
+    1. Plain JSON: ``{"scores": ...}``
+    2. Markdown-fenced JSON: ````` ```json\\n{...}\\n``` `````
+    3. Thinking-mode responses: reasoning text followed by JSON, e.g.
+       ``<think>...</think>\\n\\n{"scores": ...}`` or just prose followed
+       by a JSON block.  We locate the *first* ``{`` in the content and
+       attempt ``json.loads`` from that position.  If that fails (e.g. the
+       ``{`` is inside prose), we fall back to a regex that finds the last
+       outermost JSON object in the string.
+    """
     json_text = response_text.strip()
+
+    # Strip markdown code fences (``` or ```json ... ```)
     if json_text.startswith("```"):
         lines = json_text.split("\n")
         lines = [line for line in lines if not line.strip().startswith("```")]
-        json_text = "\n".join(lines)
-    return json.loads(json_text)  # type: ignore[no-any-return]
+        json_text = "\n".join(lines).strip()
+
+    # Fast path: the entire text is valid JSON
+    try:
+        return json.loads(json_text)  # type: ignore[no-any-return]
+    except json.JSONDecodeError:
+        pass
+
+    # Thinking-mode path: find the first '{' and try to parse from there
+    idx = json_text.find("{")
+    if idx != -1:
+        try:
+            return json.loads(json_text[idx:])  # type: ignore[no-any-return]
+        except json.JSONDecodeError:
+            pass
+
+    # Last-resort: find the last outermost JSON object via regex
+    # This handles cases where early '{' characters appear in prose.
+    matches = list(re.finditer(r"\{", json_text))
+    for m in reversed(matches):
+        try:
+            return json.loads(json_text[m.start():])  # type: ignore[no-any-return]
+        except json.JSONDecodeError:
+            continue
+
+    # Nothing worked — re-raise a clean error
+    raise json.JSONDecodeError(
+        "No valid JSON object found in LLM response",
+        json_text,
+        0,
+    )
 
 
 def run_pass2_ollama(
@@ -504,6 +548,48 @@ def score_dataset(
     )
 
 
+_LOCKFILE_PATH = Path("data/pipeline.lock")
+
+
+def _acquire_lockfile(lock_path: Path = _LOCKFILE_PATH) -> None:
+    """Acquire an exclusive lockfile to prevent multiple concurrent pipeline instances.
+
+    Writes the current PID to *lock_path*.  If the file already exists, logs
+    the PID of the competing process and exits with a non-zero status so the
+    caller does not accidentally hammer Ollama with parallel requests.
+
+    The lock is released automatically when the process exits (via atexit).
+
+    Args:
+        lock_path: Path to the lockfile.  Defaults to ``data/pipeline.lock``.
+
+    Raises:
+        SystemExit: If a lockfile already exists (another instance is running).
+    """
+    if lock_path.exists():
+        try:
+            existing_pid = lock_path.read_text().strip()
+        except OSError:
+            existing_pid = "<unknown>"
+        logger.error(
+            f"Pipeline is already running (PID {existing_pid}). "
+            f"Lockfile: {lock_path}. "
+            "If no other pipeline is running, delete the lockfile and retry."
+        )
+        sys.exit(1)
+
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    lock_path.write_text(str(os.getpid()))
+
+    def _release() -> None:
+        try:
+            lock_path.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+    atexit.register(_release)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="CAT Scoring Pipeline",
@@ -566,6 +652,9 @@ Examples:
         level=logging.DEBUG if args.verbose else logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s",
     )
+
+    # Prevent multiple concurrent pipeline instances from hammering Ollama.
+    _acquire_lockfile()
 
     # Determine effective model
     if args.model is not None:
