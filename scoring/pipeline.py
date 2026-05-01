@@ -171,13 +171,16 @@ def _build_pass2_prompt(
     duration_sec = record.get("duration_seconds", 0)
     duration_min = round(duration_sec / 60, 1) if duration_sec else "unknown"
 
-    return prompt_template.format(
+    filled = prompt_template.format(
         title=record.get("title", "Unknown"),
         channel=record.get("channel", "Unknown"),
         duration_minutes=duration_min,
         pass1_summary=pass1_summary,
         transcript=text,
     )
+    # Disable qwen3 thinking mode: prepending /no_think suppresses the hidden
+    # chain-of-thought token stream that otherwise causes 10-minute timeouts.
+    return "/no_think\n\n" + filled
 
 
 def _parse_llm_response(response_text: str) -> dict[str, Any]:
@@ -216,10 +219,12 @@ def run_pass2_ollama(
         record["pass2_error"] = "no transcript"
         return record
 
-    # Use a long read timeout (10 min) so large transcripts processed by a
+    # Use a long read timeout (30 min) so large transcripts processed by a
     # local model (e.g. qwen3:4b) are never aborted mid-generation.
     # connect timeout stays short (10 s) to catch a missing Ollama daemon fast.
-    ollama_timeout = httpx.Timeout(600.0, connect=10.0)
+    # Note: qwen3 thinking mode is disabled via /no_think in the prompt, so in
+    # practice responses should arrive in well under 30 min; this is a safety margin.
+    ollama_timeout = httpx.Timeout(1800.0, connect=10.0)
     client = openai.OpenAI(base_url=base_url, api_key="ollama", timeout=ollama_timeout)
 
     prompt = _build_pass2_prompt(record, prompt_template)
