@@ -41,6 +41,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+import httpx
+
 # Allow running as module from cat-study root
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -210,18 +212,28 @@ def run_pass2_ollama(
         record["pass2_error"] = "no transcript"
         return record
 
-    client = openai.OpenAI(base_url=base_url, api_key="ollama")
+    # Use a long read timeout (10 min) so large transcripts processed by a
+    # local model (e.g. qwen3:4b) are never aborted mid-generation.
+    # connect timeout stays short (10 s) to catch a missing Ollama daemon fast.
+    ollama_timeout = httpx.Timeout(600.0, connect=10.0)
+    client = openai.OpenAI(base_url=base_url, api_key="ollama", timeout=ollama_timeout)
 
     prompt = _build_pass2_prompt(record, prompt_template)
 
     response_text = ""
+    t0 = time.monotonic()
     try:
         response = client.chat.completions.create(
             model=model,
             max_tokens=2000,
             messages=[{"role": "user", "content": prompt}],
         )
+        elapsed = time.monotonic() - t0
         response_text = response.choices[0].message.content or ""
+        logger.info(
+            f"Ollama response for {record.get('video_id', record.get('title', '?'))}: "
+            f"{elapsed:.1f}s ({len(response_text)} chars)"
+        )
 
         result = _parse_llm_response(response_text)
 
