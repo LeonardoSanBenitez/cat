@@ -106,8 +106,8 @@ How much does the practice involve others, real or imagined?
 Output ONLY valid JSON matching this schema:
 
 ```json
-{
-  "scores": {
+{{
+  "scores": {{
     "D1_attentional_constraint": <int 0-100>,
     "D2_somatic_engagement": <int 0-100>,
     "D3_startup_modality": "<string: none|breath_regulation|body_scan|physical_movement|relaxation_induction>",
@@ -118,8 +118,8 @@ Output ONLY valid JSON matching this schema:
     "D8_interoceptive_demand": <int 0-100>,
     "D9_metacognitive_load": <int 0-100>,
     "D10_relational_orientation": <int 0-100>
-  },
-  "confidence": {
+  }},
+  "confidence": {{
     "D1": "<high|medium|low>",
     "D2": "<high|medium|low>",
     "D3": "<high|medium|low>",
@@ -130,8 +130,8 @@ Output ONLY valid JSON matching this schema:
     "D8": "<high|medium|low>",
     "D9": "<high|medium|low>",
     "D10": "<high|medium|low>"
-  },
-  "justifications": {
+  }},
+  "justifications": {{
     "D1": "<one sentence>",
     "D2": "<one sentence>",
     "D3": "<one sentence>",
@@ -142,7 +142,7 @@ Output ONLY valid JSON matching this schema:
     "D8": "<one sentence>",
     "D9": "<one sentence>",
     "D10": "<one sentence>"
-  },
+  }},
   "notes": "<optional string, for flagging issues with the transcript>"
-}
+}}
 ```
