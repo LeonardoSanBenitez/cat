@@ -17,6 +17,7 @@ tasks (prompt refinement, validation, publication). This document covers all of 
 | Priya | Engineering lead — pipeline architecture, infrastructure, code review |
 | Maria | Research lead — CAT taxonomy, prompt design, dimension validation |
 | Mark | Analysis and communication — scoring QA, results interpretation, writeup |
+| Cidral | Research review, identify gaps |
 
 ---
 
@@ -39,9 +40,9 @@ For details on each step, see the sections below.
 ## Infrastructure Requirements
 
 ### Local Inference Engine (required for scoring)
-- Ollama must be running natively on Windows before scoring
+- Ollama must be running natively before scoring
 - Default model: `qwen3:4b`
-- Start: run `ollama serve` (or it starts automatically on Windows)
+- Start: run `ollama serve`
 - Health check: `curl http://localhost:11434/api/tags`
 - The Makefile uses `http://localhost:11434/v1` by default
 
