@@ -60,7 +60,7 @@ DEFAULT_OLLAMA_MODEL = "qwen3:4b"
 # Anthropic (cloud, explicit opt-in)
 DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
 
-MAX_TRANSCRIPT_CHARS = 30000  # truncate very long transcripts for LLM
+MAX_TRANSCRIPT_CHARS = 4000  # truncate very long transcripts for LLM
 
 
 def load_pass2_prompt() -> str:
@@ -159,6 +159,10 @@ def _build_pass2_prompt(
     """Build the filled prompt string for Pass 2 from a record and template."""
     text = record.get("transcript_text", "")
     if len(text) > MAX_TRANSCRIPT_CHARS:
+        logger.debug(
+            f"Truncating transcript for {record.get('video_id', record.get('title', '?'))} "
+            f"from {len(text)} to {MAX_TRANSCRIPT_CHARS} chars"
+        )
         text = text[:MAX_TRANSCRIPT_CHARS] + "\n\n[TRANSCRIPT TRUNCATED]"
 
     pass1 = record.get("pass1_scores")
@@ -447,27 +451,40 @@ def score_dataset(
         vid = record.get("video_id", record.get("title", f"record_{i}"))
         logger.info(f"[{i+1}/{len(records)}] Scoring {vid}...")
 
-        # Pass 1
-        record = run_pass1(record)
+        try:
+            # Pass 1
+            record = run_pass1(record)
 
-        if record.get("pass1_skipped"):
-            scored.append(record)
-            continue
+            if record.get("pass1_skipped"):
+                scored.append(record)
+                continue
 
-        # Pass 2 (LLM)
-        if run_llm:
-            record = run_pass2(
-                record,
-                prompt_template,
-                model=model,
-                backend=backend,
-                ollama_base_url=ollama_base_url,
+            # Pass 2 (LLM)
+            if run_llm:
+                record = run_pass2(
+                    record,
+                    prompt_template,
+                    model=model,
+                    backend=backend,
+                    ollama_base_url=ollama_base_url,
+                )
+                if rate_limit_delay > 0 and i < len(records) - 1:
+                    time.sleep(rate_limit_delay)
+
+            # Merge
+            record = merge_scores(record)
+
+        except Exception as e:
+            logger.warning(
+                f"Record-level error for {vid} (record {i+1}/{len(records)}): {e}. "
+                f"Writing null-scores record and continuing."
             )
-            if rate_limit_delay > 0 and i < len(records) - 1:
-                time.sleep(rate_limit_delay)
+            record["pass2_error"] = f"pipeline error: {e}"
+            record["llm_scores"] = None
+            record["llm_confidence"] = None
+            record["llm_justifications"] = None
+            record["final_scores"] = None
 
-        # Merge
-        record = merge_scores(record)
         scored.append(record)
 
     write_jsonl(scored, output_path)
