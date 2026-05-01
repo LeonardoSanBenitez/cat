@@ -79,7 +79,7 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
         data = json.loads(raw)
         if not isinstance(data, list):
             raise ValueError(f"Expected a JSON array in {path}, got {type(data).__name__}")
-        return data  # type: ignore[return-value]
+        return data
 
     # JSONL: one JSON object per line
     records: list[dict[str, Any]] = []
