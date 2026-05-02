@@ -3,19 +3,19 @@
 # Targets:
 #   make status    — Show pipeline status (what was run, what is stale)
 #   make scrape    — Scrape meditation scripts from all sources
-#   make score     — Score scraped data via local Ollama (qwen3:4b)
+#   make score     — Score scraped data via local Ollama (qwen3.5:latest)
 #   make analyze   — Run aggregate analysis on scored data
 #   make all       — scrape + score + analyze
 #   make test      — Run unit tests and mypy
 #   make check     — Check if scoring is up-to-date with data and prompt
 #
 # Variables (override on command line):
-#   OLLAMA_MODEL   — Ollama model to use (default: qwen3:4b)
+#   OLLAMA_MODEL   — Ollama model to use (default: qwen3.5:latest)
 #   OLLAMA_URL     — Ollama API base URL (default: http://localhost:11434/v1)
 #   SCORED_OUT     — Scored output file (default: data/scored/full.jsonl)
 #   ANALYSIS_DIR   — Analysis output directory (default: analysis/results)
 
-OLLAMA_MODEL ?= qwen3:4b
+OLLAMA_MODEL ?= qwen3.5:latest
 OLLAMA_URL   ?= http://localhost:11434/v1
 SCORED_OUT   ?= data/scored/full.jsonl
 ANALYSIS_DIR ?= analysis/results

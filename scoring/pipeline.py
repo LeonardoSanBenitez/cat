@@ -311,6 +311,7 @@ def run_pass2_ollama(
         record["llm_confidence"] = result.get("confidence", {})
         record["llm_justifications"] = result.get("justifications", {})
         record["llm_notes"] = result.get("notes")
+        record["llm_reasoning"] = result.get("reasoning")
         record["llm_model"] = f"ollama:{model}"
         record["llm_backend"] = "ollama"
 
@@ -376,6 +377,7 @@ def run_pass2_anthropic(
         record["llm_confidence"] = result.get("confidence", {})
         record["llm_justifications"] = result.get("justifications", {})
         record["llm_notes"] = result.get("notes")
+        record["llm_reasoning"] = result.get("reasoning")
         record["llm_model"] = model
         record["llm_backend"] = "anthropic"
 
