@@ -21,7 +21,13 @@ SCORED_OUT   ?= data/scored/full.jsonl
 ANALYSIS_DIR ?= analysis/results
 RAW_DATA     ?= data/raw/all_scripts.json
 
-.PHONY: all scrape score analyze status check test help
+# Experiment target variables (override on command line):
+#   EXP         — experiment name (e.g. v0_baseline)
+#   PROMPT_FILE — path to prompt file (e.g. scoring/experiments/v0_baseline_prompt.txt)
+EXP         ?= unnamed
+PROMPT_FILE ?= scoring/experiments/$(EXP)_prompt.txt
+
+.PHONY: all scrape score analyze status check test help experiment
 
 all: scrape score analyze
 
@@ -81,3 +87,27 @@ analyze:
 test:
 	mypy scrape_meditations.py scoring/ scraping/ analysis/
 	pytest tests/ -v
+
+experiment:
+	@echo "=== Running experiment: $(EXP) ==="
+	@echo "  prompt file : $(PROMPT_FILE)"
+	@echo "  output dir  : data/experiments/$(EXP)/"
+	python -m scoring.pipeline $(RAW_DATA) \
+		-o data/experiments/$(EXP)/scored.jsonl \
+		--pass2 \
+		--backend ollama \
+		--model $(OLLAMA_MODEL) \
+		--ollama-url $(OLLAMA_URL) \
+		--prompt-file $(PROMPT_FILE) \
+		--verbose
+	python -m scoring.track_state record-score \
+		--input $(RAW_DATA) \
+		--output data/experiments/$(EXP)/scored.jsonl \
+		--model $(OLLAMA_MODEL) \
+		--backend ollama
+	python -m analysis.scripts.aggregate_report \
+		data/experiments/$(EXP)/scored.jsonl \
+		-o data/experiments/$(EXP)/analysis/
+	python -m scoring.track_state record-analysis \
+		--input data/experiments/$(EXP)/scored.jsonl \
+		--output-dir data/experiments/$(EXP)/analysis/

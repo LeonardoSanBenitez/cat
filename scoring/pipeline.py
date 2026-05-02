@@ -54,6 +54,9 @@ logger = logging.getLogger(__name__)
 
 PASS2_PROMPT_PATH = Path(__file__).parent / "pass2_llm_prompt.txt"
 
+# Default experiment output base directory (relative to project root)
+DEFAULT_EXPERIMENTS_BASE = Path("data/experiments")
+
 # Ollama (local, default)
 DEFAULT_BACKEND = "ollama"
 DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434/v1"
@@ -65,9 +68,15 @@ DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-4-20250514"
 MAX_TRANSCRIPT_CHARS = 4000  # truncate very long transcripts for LLM
 
 
-def load_pass2_prompt() -> str:
-    """Load the Pass 2 LLM prompt template."""
-    return PASS2_PROMPT_PATH.read_text()
+def load_pass2_prompt(prompt_path: Path | None = None) -> str:
+    """Load the Pass 2 LLM prompt template.
+
+    Args:
+        prompt_path: Path to a custom prompt file. If None, the default
+                     scoring/pass2_llm_prompt.txt is used.
+    """
+    path = prompt_path if prompt_path is not None else PASS2_PROMPT_PATH
+    return path.read_text()
 
 
 def read_jsonl(path: Path) -> list[dict[str, Any]]:
@@ -274,7 +283,7 @@ def run_pass2_ollama(
         "messages": [{"role": "user", "content": prompt}],
         "stream": False,
         "think": False,
-        "options": {"num_predict": 4000},
+        "options": {"num_predict": 8000},
     }
 
     # Use a long read timeout (30 min) so large transcripts processed by a
@@ -473,6 +482,8 @@ def score_dataset(
     ollama_base_url: str = DEFAULT_OLLAMA_BASE_URL,
     filter_id: str | None = None,
     rate_limit_delay: float = 1.0,
+    prompt_path: Path | None = None,
+    count: int | None = None,
 ) -> None:
     """Score all meditations in a JSONL file.
 
@@ -487,6 +498,9 @@ def score_dataset(
         rate_limit_delay: Seconds to wait between LLM calls (for Anthropic rate limits).
                           Ollama is local so delay can safely be 0, but default is kept
                           for safety.
+        prompt_path: Path to a custom prompt file. If None, uses the default
+                     scoring/pass2_llm_prompt.txt.
+        count: If set, score only the first N records (for quick tests or fallback runs).
     """
     records = read_jsonl(input_path)
     logger.info(f"Loaded {len(records)} records from {input_path}")
@@ -498,7 +512,11 @@ def score_dataset(
             return
         logger.info(f"Filtered to 1 record: {filter_id}")
 
-    prompt_template = load_pass2_prompt() if run_llm else ""
+    if count is not None and count > 0:
+        records = records[:count]
+        logger.info(f"Limited to first {count} records (--count)")
+
+    prompt_template = load_pass2_prompt(prompt_path) if run_llm else ""
 
     scored = []
     for i, record in enumerate(records):
@@ -653,6 +671,25 @@ Examples:
         default=0.0,
         help="Seconds to wait between LLM calls. Default 0 (no delay) for Ollama; set to 1.0+ for Anthropic.",
     )
+    parser.add_argument(
+        "--prompt-file",
+        type=Path,
+        default=None,
+        dest="prompt_file",
+        help=(
+            "Path to a custom Pass 2 prompt file. "
+            "Defaults to scoring/pass2_llm_prompt.txt when not specified."
+        ),
+    )
+    parser.add_argument(
+        "--count",
+        type=int,
+        default=None,
+        help=(
+            "Score only the first N records. Useful for quick validation runs or "
+            "fallback scoring when the full run is not feasible."
+        ),
+    )
     parser.add_argument("-v", "--verbose", action="store_true")
 
     args = parser.parse_args()
@@ -687,6 +724,8 @@ Examples:
         ollama_base_url=args.ollama_url,
         filter_id=args.filter_id,
         rate_limit_delay=args.rate_limit,
+        prompt_path=args.prompt_file,
+        count=args.count,
     )
 
 
